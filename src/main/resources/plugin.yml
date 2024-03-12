@@ -3,6 +3,7 @@ main: com.github.ucchyocean.WireRod
 version: ${project.version}
 authors: [ucchy, Stnsllet, LazyGon]
 description: ${project.description}
+api-version: 1.15
 commands:
   wirerod:
     description: ${project.description}
