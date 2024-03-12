@@ -17,6 +17,7 @@ import org.bukkit.entity.EntityType;
 import org.bukkit.entity.FishHook;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.ArmorStand;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageEvent;
@@ -58,7 +59,7 @@ public class WireRodListener implements Listener {
                 return;
             }
         }
-            
+
         // パーミッションが無いなら何もしない
         if (!player.hasPermission("wirerod.action")) {
             return;
@@ -85,6 +86,23 @@ public class WireRodListener implements Listener {
                 event.setCancelled(true);
                 return;
             }
+
+
+            // 針がBlockにひっかかったなら (Vehicle がない場合)、見えない防具立てを召喚してひっかけ直す
+            // (これをしないと針がブロックからずり落ちていってしまう)
+            if (hook.getVehicle() == null) {
+                ArmorStand armorStand = player.getWorld().spawn(target, ArmorStand.class);
+                armorStand.addPassenger(hook);
+                armorStand.setGravity(false);
+                armorStand.setVisible(false);
+                armorStand.setSmall(true);
+                armorStand.setArms(false);
+                armorStand.setMarker(true);
+                armorStand.setBasePlate(false);
+                hook.setMetadata("hookBlock", new FixedMetadataValue(WireRod.getInstance(), ""));
+                hook.setGravity(false);
+            }
+
 
             // フックにメタデータを入れる
             hook.setMetadata(NAME, new FixedMetadataValue(WireRod.getInstance(), true));
@@ -140,6 +158,12 @@ public class WireRodListener implements Listener {
             // エフェクト
             player.getWorld().playEffect(eLoc, Effect.POTION_BREAK, 22);
             player.getWorld().playEffect(eLoc, Effect.POTION_BREAK, 22);
+
+            // ブロックにひっかかっていた場合はメタデータを消す
+            if (hook.hasMetadata("hookBlock")) {
+                hook.removeMetadata("hookBlock", WireRod.getInstance());
+                hook.getVehicle().remove();
+            }
         }
     }
 
